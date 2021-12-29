@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>My first three.js app</title>
+    <style>
+      body {
+        margin: 0;
+        background: #2b2b2b;
+      }
+    </style>
+  </head>
+  <body>
+    <script src="https://threejs.org/build/three.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/dat-gui/0.7.7/dat.gui.min.js"></script>
+    <script>
+      // Our Javascript will go here.
+
+      const gui = new dat.GUI();
+
+      const scene = new THREE.Scene();
+      const camera = new THREE.PerspectiveCamera(
+        75,
+        window.innerWidth / window.innerHeight,
+        0.1,
+        1000
+      );
+
+      const light = new THREE.PointLight(0xffffff, 0.1);
+      light.position.set(50, 50, 50);
+      scene.add(light);
+
+      const light2 = new THREE.PointLight(0xff0000, 2);
+      light2.position.set(-44, 57, -50);
+      scene.add(light2);
+
+      const light2Dat = gui.addFolder("Light 2");
+
+      light2Dat.add(light2.position, "x").min(-50).max(50);
+      light2Dat.add(light2.position, "y").min(-100).max(100);
+      light2Dat.add(light2.position, "z").min(-100).max(100);
+      light2Dat.add(light2, "intensity").min(0).max(1);
+
+      const light3 = new THREE.PointLight(0xc5f0, 1);
+      light3.position.set(25, -100, -100);
+      scene.add(light3);
+
+      const light3Dat = gui.addFolder("Light 3");
+
+      light3Dat.add(light3.position, "x").min(-50).max(50);
+      light3Dat.add(light3.position, "y").min(-100).max(100);
+      light3Dat.add(light3.position, "z").min(-100).max(100);
+      light3Dat.add(light3, "intensity").min(0).max(1);
+
+      const light3Color = {
+        color: 0xff00000,
+      };
+
+      light3Dat.addColor(light3Color, "color").onChange(() => {
+        light3.color.set(light3Color.color);
+      });
+
+      const texture = new THREE.TextureLoader().load("texture.jpg");
+
+      // immediately use the texture for material creation
+
+      const renderer = new THREE.WebGLRenderer({
+        alpha: true,
+        antialias: true,
+      });
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      document.body.appendChild(renderer.domElement);
+
+      const geometry = new THREE.SphereGeometry(15, 30, 16);
+      const material = new THREE.MeshStandardMaterial({
+        metalness: 0.5,
+        roughness: 0.09,
+      });
+
+      material.normalMap = texture;
+
+      const ball = gui.addFolder("Sphere");
+
+      ball.add(material, "metalness").min(0).max(1);
+      ball.add(material, "roughness").min(0).max(1);
+
+      // material.map = new THREE.Color(0x292929);
+      const sphere = new THREE.Mesh(geometry, material);
+
+      scene.add(sphere);
+
+      camera.position.z = 75;
+
+      let mouseX = 0;
+      let mouseY = 0;
+
+      let targetX = 0;
+      let targetY = 0;
+
+      const xHalf = window.innerWidth / 2;
+      const yHalf = window.innerHeight / 2;
+
+      window.addEventListener("mousemove", (e) => {
+        mouseX = e.clientX - xHalf;
+        mouseY = e.clientY - yHalf;
+      });
+
+      function animate() {
+        requestAnimationFrame(animate);
+
+        targetX = mouseX * 0.001;
+        targetY = mouseY * 0.001;
+
+        sphere.rotation.y += 0.5 * (targetX - sphere.rotation.y);
+        sphere.rotation.x += 0.05 * (targetY - sphere.rotation.x);
+        sphere.position.z += -1.5 * (targetY - sphere.rotation.x);
+
+        renderer.render(scene, camera);
+      }
+      animate();
+
+      window.addEventListener("resize", () => {
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateMatrix();
+      });
+    </script>
+  </body>
+</html>
